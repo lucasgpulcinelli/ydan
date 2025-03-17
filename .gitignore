@@ -1,0 +1,6 @@
+.*
+!.gitignore
+
+/minio_data
+/postgres_data
+/venv
