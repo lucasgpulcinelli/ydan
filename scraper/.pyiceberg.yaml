@@ -1,0 +1,9 @@
+catalog:
+  default:
+    type: sql
+    uri: "postgresql+psycopg2://postgres:postgres@postgres/iceberg_catalog"
+    warehouse: "s3://ydan"
+    s3.access-key-id: minio-ydan-insecure
+    s3.secret-access-key: minio-ydan-insecure
+    s3.endpoint: "http://minio:9000"
+    py-io-impl: "pyiceberg.io.pyarrow.PyArrowFileIO"

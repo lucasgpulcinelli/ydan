@@ -1,6 +1,9 @@
 .*
 !.gitignore
 
+!.pyiceberg.yaml
+!.python-version
+
 /minio_data
 /postgres_data
 /venv
