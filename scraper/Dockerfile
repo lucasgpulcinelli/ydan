@@ -14,6 +14,7 @@ RUN pip install --upgrade pip \
 RUN useradd -M scraper
 
 COPY --chmod=755 ./ /app/
+RUN mv /app/.pyiceberg.docker.yaml /app/.pyiceberg.yaml
 
 WORKDIR /app
 

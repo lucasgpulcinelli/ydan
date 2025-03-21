@@ -2,6 +2,7 @@
 !.gitignore
 
 !.pyiceberg.yaml
+!.pyiceberg.docker.yaml
 !.python-version
 
 /minio_data
