@@ -20,7 +20,6 @@
     "likes" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 0 "videoPrimaryInfoRenderer" "videoActions" "menuRenderer" "topLevelButtons" 0 "segmentedLikeDislikeButtonViewModel" "likeButtonViewModel" "likeButtonViewModel" "toggleButtonViewModel" "toggleButtonViewModel" "defaultButtonViewModel" "buttonViewModel" "accessibilityText"]
     "uploaded_date" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 0 "videoPrimaryInfoRenderer" "dateText" "simpleText"]
     "channel_subscribers" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 1 "videoSecondaryInfoRenderer" "owner" "videoOwnerRenderer" "subscriberCountText" "simpleText"]
-    "time_of_scraping_unix" ["frameworkUpdates" "entityBatchUpdate" "timestamp" "seconds"]
     "heatmap" ["frameworkUpdates" "entityBatchUpdate" "mutations" 0 "payload" "macroMarkersListEntity" "markersList" "markers"
                ["intensityScoreNormalized"]]
     "recommendations" ["contents" "twoColumnWatchNextResults" "secondaryResults" "secondaryResults" "results"

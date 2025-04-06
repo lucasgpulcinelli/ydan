@@ -18,4 +18,5 @@
       (reduce merge v)
       (utils/rename-props rename-map v)
       (utils/transform-props transform-map v)
+      (assoc v "time_of_scraping_unix" (quot (System/currentTimeMillis) 1000))
       (do (printf "scraped %s %s successfully\n" kind (get v "id")) v))))
