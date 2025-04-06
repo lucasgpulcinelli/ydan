@@ -1,14 +1,16 @@
 (ns cljscrape.youtube
   (:require
    [clojure.string :as string]
-   [cljscrape.utils :as utils])
+   [cljscrape.utils :as utils]
+   [clojure.java.shell :as sh])
   (:import
    [java.time.format DateTimeFormatter]
    [java.time LocalDateTime]
+   [java.io IOException]
    [java.util.regex Pattern]))
 
-(def json-patterns [(Pattern/compile "var ytInitialPlayerResponse = (.*);</script>")
-                    (Pattern/compile "var ytInitialData = (.*);</script>")])
+(def video-patterns [(Pattern/compile "var ytInitialPlayerResponse = (.*);</script>")
+                     (Pattern/compile "var ytInitialData = (.*);</script>")])
 
 (def properties
   {:video
@@ -35,8 +37,8 @@
                         "views_2" ["lockupViewModel" "metadata" "lockupMetadataViewModel" "metadata" "contentMetadataViewModel" "metadataRows" 1 "metadataParts" 0 "text" "content"]
                         "uploaded_date_1" ["compactVideoRenderer" "publishedTimeText" "simpleText"]
                         "uploaded_date_2" ["lockupViewModel" "metadata" "lockupMetadataViewModel" "metadata" "contentMetadataViewModel" "metadataRows" 1 "metadataParts" 1 "text" "content"]
-                        "channel_url_1" ["compactVideoRenderer" "shortBylineText" "runs" 0 "navigationEndpoint" "browseEndpoint" "browseId"]
-                        "channel_url_2" ["lockupViewModel" "metadata" "lockupMetadataViewModel" "image" "decoratedAvatarViewModel" "rendererContext" "commandContext" "onTap" "innertubeCommand" "browseEndpoint" "browseId"]}]
+                        "channel_id_1" ["compactVideoRenderer" "shortBylineText" "runs" 0 "navigationEndpoint" "browseEndpoint" "browseId"]
+                        "channel_id_2" ["lockupViewModel" "metadata" "lockupMetadataViewModel" "image" "decoratedAvatarViewModel" "rendererContext" "commandContext" "onTap" "innertubeCommand" "browseEndpoint" "browseId"]}]
     "chapters" ["playerOverlays" "playerOverlayRenderer" "decoratedPlayerBarRenderer" "decoratedPlayerBarRenderer" "playerBar" "multiMarkersPlayerBarRenderer" "markersMap" 0 "value" "chapters"
                 {"title" ["chapterRenderer" "title" "simpleText"]
                  "start_ms" ["chapterRenderer" "timeRangeStartMillis"]}]
@@ -46,8 +48,11 @@
                  "language" ["languageCode"]
                  "name" ["name" "simpleText"]}]
     "family_friendly" ["microformat" "playerMicroformatRenderer" "isFamilySafe"]}
-   :channel
-   {}})
+   :channel {"id" ["id"]
+             "views" ["view_count"]
+             "uploaded_date_unix" ["release_timestamp"]
+             "channel_id" ["playlist_channel_id"]
+             "duration" ["duration"]}})
 
 (defn parse-upload-date [date-str]
   (let [input-formatter (DateTimeFormatter/ofPattern "MMM d, yyyy")
@@ -128,7 +133,7 @@
                     "views" parse-rec-views
                     "uploaded_date" parse-time-string})
 
-(def final-rec-props ["id" "views" "uploaded_date" "channel_url" "duration"])
+(def final-rec-props ["id" "views" "uploaded_date" "channel_id" "duration"])
 
 (defn merge-recommendation-prop [rec prefix]
   (->>
@@ -179,13 +184,18 @@
                          "thumbnail" #(utils/request %1 :bytes)}
                  :channel {}})
 
-(defn id2url [id] (format "https://www.youtube.com/watch?v=%s&gl=US&hl=en" id))
+(defn videoid2url [id] (format "https://www.youtube.com/watch?v=%s&gl=US&hl=en" id))
+
+(defn channelid2url [id] (format "https://www.youtube.com/channel/%s/videos" id))
 
 (defn thumbnailurl [id] (format "https://i.ytimg.com/vi/%s/hqdefault.jpg" id))
 
-(defn channel? [url] (== -1 (.indexOf url "/watch")))
-
-(defn video? [url] (not (channel? url)))
-
-(defn kind [url] (if (video? url) :video :channel))
-
+(defn list-videos [channel-url]
+  (let [res (sh/sh
+             "yt-dlp" channel-url
+             "--skip-download" "--dump-json" "--flat-playlist"
+             "-I" "0:1000:1")]
+    (if (= (:exit res) 0)
+      (string/split-lines (:out res))
+      (throw
+       (IOException. (format "invalid return for yt-dlp: %s" (:err res)))))))

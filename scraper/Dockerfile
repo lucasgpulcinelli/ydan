@@ -21,9 +21,13 @@ FROM debian:bookworm
 WORKDIR /app
 
 RUN apt-get update && \
-  apt-get install -y openjdk-17-jre-headless && \
+  apt-get install -y openjdk-17-jre-headless python3 python3-venv && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /venv && \
+  . /venv/bin/activate && \
+  pip install yt-dlp
 
 RUN useradd -M scraper
 
@@ -31,4 +35,4 @@ COPY --from=build --chmod=755 /app/target/uberjar/cljscrape-*-standalone.jar /ap
 
 USER scraper
 
-ENTRYPOINT ["java", "-jar", "cljscrape.jar"]
+ENTRYPOINT ["bash", "-c", "source /venv/bin/activate && java -jar cljscrape.jar"]

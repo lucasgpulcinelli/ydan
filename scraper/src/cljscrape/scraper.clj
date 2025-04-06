@@ -36,16 +36,29 @@
       (if (second %1) ((get transform-map (first %1) identity) (second %1)) (second %1)))
     data)))
 
-(defn scrape [url]
+(defn scrape-video [id]
   (let
-   [rename-map ((yt/kind url) yt/properties)
-    transform-map ((yt/kind url) yt/transforms)]
-    (as-> url v
+   [rename-map (:video yt/properties)
+    transform-map (:video yt/transforms)]
+    (as-> id v
+      (yt/videoid2url v)
       (utils/request v :string)
-      (map #(get-match-from %1 v) yt/json-patterns)
+      (map #(get-match-from %1 v) yt/video-patterns)
       (reduce merge v)
       (rename-props rename-map v)
       (assoc v "thumbnail" (yt/thumbnailurl (get v "id")))
       (transform-props transform-map v)
-      (do (printf "scraped %s successfully\n" (get v "id")) v))))
+      (do (printf "scraped video %s successfully\n" (get v "id")) v))))
+
+(defn scrape-channel [id]
+  (let
+   [rename-map (:channel yt/properties)
+    transform-map (:channel yt/transforms)]
+    (as-> id v
+      (yt/channelid2url v)
+      (yt/list-videos v)
+      (map json/decode v)
+      (map (partial rename-props rename-map) v)
+      (map (partial transform-props transform-map) v)
+      (do (printf "scraped channel %s successfully\n" id) v))))
 
