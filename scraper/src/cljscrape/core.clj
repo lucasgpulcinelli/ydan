@@ -5,7 +5,7 @@
 
 (defn -main
   [& args]
-  (let [dburl "jdbc:postgresql://postgres:5432/"
+  (let [dburl "jdbc:postgresql://localhost:5432/"
         user "postgres"
         pass "postgres"]
     (println "started now")

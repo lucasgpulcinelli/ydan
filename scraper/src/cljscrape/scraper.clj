@@ -3,7 +3,16 @@
             [clojure.string :as string]
             [cljscrape.utils :as utils]
             [cljscrape.constants :as consts]
-            [cljscrape.transforms :as trans]))
+            [cljscrape.transforms :as trans])
+  (:import [java.util Base64]
+           [java.net URI]
+           [software.amazon.awssdk.services.s3 S3Configuration]
+           [java.util.function Consumer]
+           [software.amazon.awssdk.regions Region]
+           [software.amazon.awssdk.services.s3 S3Client]
+           [software.amazon.awssdk.core.sync RequestBody]
+           [software.amazon.awssdk.auth.credentials AwsBasicCredentials StaticCredentialsProvider]
+           [software.amazon.awssdk.services.s3.model PutObjectRequest]))
 
 (defn get-next-entries [queue]
   (let [st (.createStatement queue)
@@ -42,20 +51,64 @@
     (.close st))
   queue)
 
+(def s3-client
+
+  (->
+   (S3Client/builder)
+   (.endpointOverride (URI. "http://localhost:9000"))
+   (.credentialsProvider
+    (StaticCredentialsProvider/create
+     (AwsBasicCredentials/create "minio-ydan-insecure" "minio-ydan-insecure")))
+   (.region (Region/of "us-east-1"))
+   (.serviceConfiguration
+    (reify Consumer
+      (accept [_ builder]
+        (S3Configuration/builder)
+        (.pathStyleAccessEnabled builder true))))
+   (.build)))
+
+(defn save-to-s3 [bucket key content]
+  (let [request (->
+                 (PutObjectRequest/builder)
+                 (.bucket bucket)
+                 (.key key)
+                 (.build))
+        body (RequestBody/fromBytes content)]
+    (.putObject s3-client request body)
+    (println "Upload complete.")))
+
 (defn save-entry [entry]
-  (let [id (:id entry)]
-    (as-> entry v
-      (:data v)
-      (if (utils/video? id)
-        (let [f (java.io.File. (format "cljscrape/%s.jpeg" id))
-              is (java.io.FileOutputStream. f)]
-          (.write is (get v "thumbnail"))
-          (.close is)
-          (spit (format "cljscrape/%s.xml" id) (get v "captions"))
-          (-> v (dissoc "thumbnail") (dissoc "captions")))
-        v)
-      (json/encode v)
-      (spit (format "cljscrape/%s.json" id) v))))
+  (let [id (:id entry)
+        data (:data entry)
+        caps (get data "captions")
+        img (get data "thumbnail")
+        encoded-id (->> id (.getBytes) (.encode (Base64/getEncoder)) (String.))
+        bucket-partition (mod (.hashCode id) 15)]
+
+    (and
+     (utils/video? id)
+     (do
+       (and (not (nil? img))
+            (save-to-s3
+             "ydan"
+             (format "thumbnails/%d/%s.jpeg" bucket-partition encoded-id)
+             img))
+
+       (and (not (nil? caps))
+            (save-to-s3
+             "ydan"
+             (format "captions/%d/%s.xml" bucket-partition encoded-id)
+             (.getBytes caps "UTF-8")))
+
+       (as-> data v
+         (dissoc v "thumbnail")
+         (dissoc v "captions")
+         (json/encode v)
+         (.getBytes v "UTF-8")
+         (save-to-s3
+          "ydan"
+          (format "video_channel_data/%d/%s.json" bucket-partition encoded-id)
+          v))))))
 
 (defn save-entries [queue entries]
   (put-entries queue entries)
@@ -69,7 +122,7 @@
     (try
       (as-> id v
         (do
-          (println "started scraping %s %s" kind v)
+          (println "started scraping" kind v)
           v)
         ((kind utils/id2url) v)
         (utils/request v :string)
