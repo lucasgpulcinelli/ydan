@@ -10,10 +10,13 @@
    [java.time LocalDateTime]))
 
 (defn parse-upload-date [date-str]
-  (let [input-formatter (DateTimeFormatter/ofPattern "MMM d, yyyy")
-        output-formatter (DateTimeFormatter/ofPattern "yyyy/MM/dd")
-        date (java.time.LocalDate/parse date-str input-formatter)]
-    (.format date output-formatter)))
+  (let [re #"(Premiere(d|s)? )?(.*)"
+        match (re-find re date-str)
+        input-formatter (DateTimeFormatter/ofPattern "MMM d, yyyy")
+        output-formatter (DateTimeFormatter/ofPattern "yyyy/MM/dd")]
+    (if match
+      (.format (java.time.LocalDate/parse (nth match 3) input-formatter) output-formatter)
+      nil)))
 
 (defn parse-subscriber-count [s]
   (let [re #"(\d+(\.\d+)?)\s*(K|M|)\s*subscribers?"
