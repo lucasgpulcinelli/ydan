@@ -4,7 +4,10 @@
             [cljscrape.constants :as consts]
             [cljscrape.queue :as q]
             [cljscrape.store :as store]
-            [cljscrape.transforms :as trans]))
+            [cljscrape.transforms :as trans])
+  (:import [org.slf4j LoggerFactory]))
+
+(def logger (LoggerFactory/getLogger "scraper"))
 
 (defn scrape-id [id]
   (let
@@ -14,7 +17,7 @@
     (try
       (as-> id v
         (do
-          (println "started scraping" kind v)
+          (.info logger "started scraping {} {}" kind v)
           v)
         ((kind utils/id2url) v)
         (utils/request v :string)
@@ -25,12 +28,12 @@
         (utils/transform-props transform-map v)
         (assoc v "time_of_scraping_unix" (quot (System/currentTimeMillis) 1000))
         (do
-          (println "scraped" kind (get v "id") "successfully")
+          (.info logger "scraped {} {} successfully"  kind (get v "id"))
           v))
       (catch Exception e
-        (println "error occurred during scraping of"
-                 kind id ":"
-                 (class e) (.getMessage e))
+        (.error logger "error occurred during scraping of {} {}: {} {}"
+                kind id
+                (class e) (.getMessage e))
         nil))))
 
 (defn make-entry [id] {:tries 0 :id id :state "pending"})
@@ -62,12 +65,12 @@
                              (map make-entry))]
     (or (empty? failed)
         (do
-          (println "we had" (count failed) "failures, sleeping for"
-                   (/ fail-sleep-time 1000) "s")
+          (.warn logger "we had {} failures, sleeping for {}s"
+                 (count failed) (/ fail-sleep-time 1000))
           (Thread/sleep fail-sleep-time)))
 
     (if (empty? entries)
-      (println "ended all possible scrapes")
+      (.warn logger "ended all possible scrapes")
       (do
         (store/save-entries successful)
         (q/mark-completed queue successful)

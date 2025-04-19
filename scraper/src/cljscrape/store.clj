@@ -18,7 +18,7 @@
    (.endpointOverride (URI. consts/minio-url))
    (.credentialsProvider
     (StaticCredentialsProvider/create
-       (AwsBasicCredentials/create consts/minio-user consts/minio-pass)))
+     (AwsBasicCredentials/create consts/minio-user consts/minio-pass)))
    (.region (Region/of "us-east-1"))
    (.serviceConfiguration
     (reify Consumer
@@ -34,8 +34,7 @@
                  (.key key)
                  (.build))
         body (RequestBody/fromBytes content)]
-    (.putObject s3-client request body)
-    (println "Upload complete.")))
+    (.putObject s3-client request body)))
 
 (defn save-entry [entry]
   (let [id (:id entry)
@@ -71,5 +70,5 @@
           v))))))
 
 (defn save-entries [entries]
-  (doall (map save-entry entries)))
+  (doall (pmap save-entry entries)))
 
