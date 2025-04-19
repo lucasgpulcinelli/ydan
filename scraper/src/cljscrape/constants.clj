@@ -15,7 +15,7 @@
 
 (def minio-bucket (or (System/getenv "MINIO_BUCKET") "ydan"))
 
-(def initial-fail-sleep-time (Integer/parseInt (or (System/getenv "INITIAL_FAIL_TIME") "1000")))
+(def initial-fail-sleep-time (Long/parseLong (or (System/getenv "INITIAL_FAIL_TIME") "1000")))
 
 (def partition-amount (Integer/parseInt (or (System/getenv "PARTITION_AMOUNT") "15")))
 
@@ -32,13 +32,13 @@
   {:video
    {"duration_s" ["videoDetails" "lengthSeconds"]
     "is_live" ["videoDetails" "isLiveContent"]
-    "title" ["videoDetails" "title"]
-    "description" ["videoDetails" "shortDescription"]
-    "channel_id" ["videoDetails" "channelId"]
-    "views" ["videoDetails" "viewCount"]
     "keywords" ["videoDetails" "keywords"]
-    "id" ["videoDetails" "videoId"]
-    "thumbnail" ["videoDetails" "videoId"]
+    "title" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 0 "videoPrimaryInfoRenderer" "title" "runs" 0 "text"]
+    "description" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 1 "videoSecondaryInfoRenderer" "attributedDescription" "content"]
+    "channel_id" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 1 "videoSecondaryInfoRenderer" "owner" "videoOwnerRenderer" "title" "runs" 0 "navigationEndpoint" "browseEndpoint" "browseId"]
+    "views" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 0 "videoPrimaryInfoRenderer" "viewCount" "videoViewCountRenderer" "viewCount" "simpleText"]
+    "id" ["currentVideoEndpoint" "watchEndpoint" "videoId"]
+    "thumbnail" ["currentVideoEndpoint" "watchEndpoint" "videoId"]
     "likes" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 0 "videoPrimaryInfoRenderer" "videoActions" "menuRenderer" "topLevelButtons" 0 "segmentedLikeDislikeButtonViewModel" "likeButtonViewModel" "likeButtonViewModel" "toggleButtonViewModel" "toggleButtonViewModel" "defaultButtonViewModel" "buttonViewModel" "accessibilityText"]
     "uploaded_date" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 0 "videoPrimaryInfoRenderer" "dateText" "simpleText"]
     "channel_subscribers" ["contents" "twoColumnWatchNextResults" "results" "results" "contents" 1 "videoSecondaryInfoRenderer" "owner" "videoOwnerRenderer" "subscriberCountText" "simpleText"]

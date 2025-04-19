@@ -171,7 +171,7 @@
            "likes" parse-likes
            "recommendations" parse-recommendations
            "time_of_scraping_unix" read-string
-           "views" read-string
+           "views" parse-recommendation-views
            "thumbnail" #(utils/request (utils/thumbnailurl %1) :bytes)}
    :channel {"videos" list-videos
              "video_count" parse-video-count

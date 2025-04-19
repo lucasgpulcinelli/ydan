@@ -29,7 +29,8 @@
         (utils/transform-props transform-map v)
         (assoc v "time_of_scraping_unix" (quot (System/currentTimeMillis) 1000))
         (do
-          (.info logger "scraped {} {} successfully"  kind (get v "id"))
+          (and (nil? (get v "id")) (throw (IllegalArgumentException. "result has no ID")))
+          (.info logger "scraped {} {} successfully"  kind id)
           v))
       (catch Exception e
         (.error logger "error occurred during scraping of {}: {}"
@@ -91,7 +92,7 @@
         (do
           (.warn logger "we had {} failures, sleeping for {}s"
                  (count failed) (/ fail-sleep-time 1000))
-          (Thread/sleep (Math/round fail-sleep-time))))
+          (Thread/sleep fail-sleep-time)))
 
     (if (empty? entries)
       (.warn logger "ended all possible scrapes")
