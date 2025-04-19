@@ -52,14 +52,14 @@
 (defn cutoff-scrape-filter [entry]
   (and
    (or
-    (nil? (get "views" entry))
-    (>= consts/minimum-views (get "views" entry)))
+    (nil? (get entry "views"))
+    (<= consts/minimum-views (get entry "views")))
    (or
-    (nil? (get "uploaded_date" entry))
-    (>= consts/minimum-year
+    (nil? (get entry "uploaded_date"))
+    (<= consts/minimum-year
         (.getYear
          (java.time.LocalDate/parse
-          (get "uploaded_date" entry)
+          (get entry "uploaded_date")
           (DateTimeFormatter/ofPattern "yyyy/MM/dd")))))))
 
 (defn get-recommendations [entry]
