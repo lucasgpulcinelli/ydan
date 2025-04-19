@@ -14,19 +14,28 @@
            [software.amazon.awssdk.auth.credentials AwsBasicCredentials StaticCredentialsProvider]
            [software.amazon.awssdk.services.s3.model PutObjectRequest]))
 
+(defn entries-from-resultset [rs]
+  (loop [results []]
+    (if (.next rs)
+      (recur
+       (conj results
+             {:id (string/trim (.getString rs "id"))
+              :tries (.getInt rs "tries")
+              :state "running"}))
+      results)))
+
+(defn entries-from-sql [st sql]
+  (let [rs (.executeQuery st sql)
+        results (entries-from-resultset rs)]
+    (.close rs)
+    results))
+
 (defn get-next-entries [queue]
   (let [st (.createStatement queue)
-        rs (.executeQuery
-            st "SELECT * FROM ydan.random_n_entries(10);")
-        results (loop [results []]
-                  (if (.next rs)
-                    (recur
-                     (conj results
-                           {:id (string/trim (.getString rs "id"))
-                            :tries (.getInt rs "tries")
-                            :state "running"}))
-                    results))]
-    (.close rs)
+        video-results (entries-from-sql st "SELECT * FROM ydan.random_n_entries(10, 'video'::ydan.scrape_kind);")
+        results (if (= 0 (count video-results))
+                  (entries-from-sql st "SELECT * FROM ydan.random_n_entries(10, 'channel'::ydan.scrape_kind);")
+                  video-results)]
     (.close st)
     [queue, results]))
 
@@ -34,8 +43,8 @@
   (let [st
         (.prepareStatement
          queue
-         "INSERT INTO ydan.entries (id, tries, state)
-          VALUES (?, ?, ? :: ydan.scrape_state)
+         "INSERT INTO ydan.entries (id, tries, state, kind)
+          VALUES (?, ?, ? :: ydan.scrape_state, ? :: ydan.scrape_kind)
           ON CONFLICT (id) DO
           UPDATE
           SET tries = EXCLUDED.tries, state = EXCLUDED.state")]
@@ -44,6 +53,7 @@
             (.setString st 1 (:id entry))
             (.setInt st 2 (:tries entry))
             (.setString st 3 (:state entry))
+            (.setString st 4 (-> entry (:id) (utils/kind) (.toString) (.substring 1)))
             (.addBatch st))
           entries))
     (.clearParameters st)

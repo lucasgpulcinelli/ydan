@@ -4,16 +4,16 @@ CREATE SCHEMA ydan;
 CREATE SCHEMA iceberg_catalog;
 
 CREATE TYPE ydan.scrape_state AS ENUM ('pending', 'running', 'completed', 'failed');
+CREATE TYPE ydan.scrape_kind AS ENUM ('video', 'channel');
 
 CREATE TABLE ydan.entries (
   id CHAR(24) PRIMARY KEY,
+  kind ydan.scrape_kind NOT NULL,
   state ydan.scrape_state NOT NULL DEFAULT 'pending',
   tries INT NOT NULL DEFAULT 0
 );
 
-INSERT INTO ydan.entries VALUES ('851U557j6HE'), ('NDsO1LT_0lw');
-
-CREATE OR REPLACE FUNCTION ydan.random_n_entries(n INT)
+CREATE OR REPLACE FUNCTION ydan.random_n_entries(n INT, entry_kind ydan.scrape_kind)
 RETURNS TABLE(id CHAR(24), tries INT)
 LANGUAGE plpgsql
 AS $$
@@ -25,7 +25,7 @@ BEGIN
   pending_entries AS (
     SELECT entries.id
     FROM entries
-    WHERE state = 'pending'
+    WHERE state = 'pending' AND kind = entry_kind
   ),
   random_ranks AS (
     SELECT
