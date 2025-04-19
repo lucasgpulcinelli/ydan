@@ -1,6 +1,24 @@
 (ns cljscrape.constants
   (:import [java.util.regex Pattern]))
 
+(def db-user (or (System/getenv "POSTGRES_USER") "postgres"))
+
+(def db-pass (or (System/getenv "POSTGRES_PASS") "postgres"))
+
+(def db-url (or (System/getenv "POSTGRES_URL") "jdbc:postgresql://localhost:5432/"))
+
+(def minio-user (or (System/getenv "MINIO_USER") "minio-ydan-insecure"))
+
+(def minio-pass (or (System/getenv "MINIO_PASS") "minio-ydan-insecure"))
+
+(def minio-url (or (System/getenv "MINIO_URL") "http://localhost:9000"))
+
+(def minio-bucket (or (System/getenv "MINIO_BUCKET") "ydan"))
+
+(def initial-fail-sleep-time (Integer/parseInt (or (System/getenv "INITIAL_FAIL_TIME") "1000")))
+
+(def partition-amount (Integer/parseInt (or (System/getenv "PARTITION_AMOUNT") "15")))
+
 (def json-patterns
   {:video [(Pattern/compile "var ytInitialPlayerResponse = (.*);</script>")
            (Pattern/compile "var ytInitialData = (.*);</script>")]
