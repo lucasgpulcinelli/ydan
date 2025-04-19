@@ -91,7 +91,7 @@
         (do
           (.warn logger "we had {} failures, sleeping for {}s"
                  (count failed) (/ fail-sleep-time 1000))
-          (Thread/sleep fail-sleep-time)))
+          (Thread/sleep (Math/round fail-sleep-time))))
 
     (if (empty? entries)
       (.warn logger "ended all possible scrapes")
