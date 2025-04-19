@@ -5,7 +5,8 @@
             [cljscrape.queue :as q]
             [cljscrape.store :as store]
             [cljscrape.transforms :as trans])
-  (:import [org.slf4j LoggerFactory]))
+  (:import [org.slf4j LoggerFactory]
+           [java.time.format DateTimeFormatter]))
 
 (def logger (LoggerFactory/getLogger "scraper"))
 
@@ -47,12 +48,35 @@
               "completed")
      :data res}))
 
+(defn cutoff-scrape-filter [entry]
+  (and
+   (or
+    (nil? (get "views" entry))
+    (>= consts/minimum-views (get "views" entry)))
+   (or
+    (nil? (get "uploaded_date" entry))
+    (>= consts/minimum-year
+        (.getYear
+         (java.time.LocalDate/parse
+          (get "uploaded_date" entry)
+          (DateTimeFormatter/ofPattern "yyyy/MM/dd")))))))
+
 (defn get-recommendations [entry]
   (let [scrape-result (:data entry)]
     (concat
-     (filter #(not (nil? %)) (map #(get % "channel_id") (get scrape-result "recommendations")))
-     (filter #(not (nil? %)) (map #(get % "id") (get scrape-result "videos")))
-     (filter #(not (nil? %)) (get scrape-result "related_channels")))))
+     (map
+      #(get % "channel_id")
+      (filter
+       #(and (not (nil? (get % "channel_id"))) (cutoff-scrape-filter %))
+       (get scrape-result "recommendations")))
+     (map
+      #(get % "id")
+      (filter
+       #(and (not (nil? (get % "id"))) (cutoff-scrape-filter %))
+       (get scrape-result "videos")))
+     (filter
+      #(not (nil? %))
+      (get scrape-result "related_channels")))))
 
 (defn scrape-loop [fail-sleep-time queue]
   (let [[queue entries] (q/get-next-entries queue)

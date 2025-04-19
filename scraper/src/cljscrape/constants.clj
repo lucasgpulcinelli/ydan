@@ -19,6 +19,10 @@
 
 (def partition-amount (Integer/parseInt (or (System/getenv "PARTITION_AMOUNT") "15")))
 
+(def minimum-views (Integer/parseInt (or (System/getenv "MINIMUM_VIEWS") "5000")))
+
+(def minimum-year (Integer/parseInt (or (System/getenv "MINIMUM_YEAR") "2020")))
+
 (def json-patterns
   {:video [(Pattern/compile "var ytInitialPlayerResponse = (.*);</script>")
            (Pattern/compile "var ytInitialData = (.*);</script>")]

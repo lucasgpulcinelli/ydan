@@ -57,17 +57,20 @@
             (save-to-s3
              consts/minio-bucket
              (format "captions/%d/%s.xml" bucket-partition encoded-id)
-             (.getBytes caps "UTF-8")))
+             (.getBytes caps "UTF-8")))))
 
-       (as-> data v
-         (dissoc v "thumbnail")
-         (dissoc v "captions")
-         (json/encode v)
-         (.getBytes v "UTF-8")
-         (save-to-s3
-          consts/minio-bucket
-          (format "video_channel_data/%d/%s.json" bucket-partition encoded-id)
-          v))))))
+    (as-> data v
+      (dissoc v "thumbnail")
+      (dissoc v "captions")
+      (json/encode v)
+      (.getBytes v "UTF-8")
+      (save-to-s3
+       consts/minio-bucket
+       (format "%s_data/%d/%s.json"
+               (-> id (utils/kind) (.toString) (.substring 1))
+               (if (utils/channel? id) 1 bucket-partition)
+               encoded-id)
+       v))))
 
 (defn save-entries [entries]
   (doall (pmap save-entry entries)))
