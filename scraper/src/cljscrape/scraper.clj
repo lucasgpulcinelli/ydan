@@ -32,9 +32,9 @@
           (.info logger "scraped {} {} successfully"  kind (get v "id"))
           v))
       (catch Exception e
-        (.error logger "error occurred during scraping of {} {}: {} {}"
-                kind id
-                (class e) (.getMessage e))
+        (.error logger "error occurred during scraping of {}: {}"
+                (format "%s %s" kind id)
+                (format "%s %s" (class e) (.getMessage e)))
         nil))))
 
 (defn make-entry [id] {:tries 0 :id id :state "pending"})
@@ -97,10 +97,8 @@
       (.warn logger "ended all possible scrapes")
       (do
         (store/save-entries successful)
-        (q/mark-completed queue successful)
+        (q/put-entries queue recommendations)
+        (q/update-entries queue results)
         (recur
          (if (empty? failed) consts/initial-fail-sleep-time (* fail-sleep-time 2))
-         (->
-          queue
-          (q/put-entries failed)
-          (q/put-entries recommendations)))))))
+         queue)))))

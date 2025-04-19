@@ -21,7 +21,7 @@
 
 (defprotocol Queue
   (get-next-entries [this])
-  (mark-completed [this entries])
+  (update-entries [this entries])
   (put-entries [this entries]))
 
 (defrecord PostgresQueue [conn]
@@ -36,18 +36,14 @@
       (.close st)
       [this, results]))
 
-  (mark-completed [this entries]
-    (put-entries this entries))
-
   (put-entries [this entries]
     (let [st
           (.prepareStatement
            conn
            "INSERT INTO ydan.entries (id, tries, state, kind)
-          VALUES (?, ?, ? :: ydan.scrape_state, ? :: ydan.scrape_kind)
-          ON CONFLICT (id) DO
-          UPDATE
-          SET tries = EXCLUDED.tries, state = EXCLUDED.state")]
+            VALUES (?, ?, ? :: ydan.scrape_state, ? :: ydan.scrape_kind)
+            ON CONFLICT (id) DO NOTHING
+           ")]
       (doall
        (map (fn [entry]
               (.setString st 1 (:id entry))
@@ -58,6 +54,23 @@
             entries))
       (.clearParameters st)
       (.executeBatch st)
-      (.close st))
-    this))
+      (.close st)))
+
+  (update-entries [this entries]
+    (let [st
+          (.prepareStatement
+           conn
+           "UPDATE ydan.entries
+            SET tries = ?, state = ? :: ydan.scrape_state
+            WHERE id = ?")]
+      (doall
+       (map (fn [entry]
+              (.setInt st 1 (:tries entry))
+              (.setString st 2 (:state entry))
+              (.setString st 3 (:id entry))
+              (.addBatch st))
+            entries))
+      (.clearParameters st)
+      (.executeBatch st)
+      (.close st))))
 
