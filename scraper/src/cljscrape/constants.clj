@@ -15,7 +15,7 @@
 
 (def minio-bucket (or (System/getenv "MINIO_BUCKET") "ydan"))
 
-(def initial-fail-sleep-time (Long/parseLong (or (System/getenv "INITIAL_FAIL_TIME") "1000")))
+(def initial-fail-sleep-time (Long/parseLong (or (System/getenv "INITIAL_FAIL_TIME") "600000")))
 
 (def partition-amount (Integer/parseInt (or (System/getenv "PARTITION_AMOUNT") "15")))
 

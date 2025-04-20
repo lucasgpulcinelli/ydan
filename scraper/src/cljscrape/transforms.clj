@@ -51,23 +51,26 @@
         :else timestamp))
     (catch NumberFormatException _ timestamp)))
 
-(defn parse-recommendation-views [s]
-  (let [re #"(\d+(?:,\d+)*) views"
+(defn parse-views [s]
+  (let [re #"(\d+(?:.\d+)*)\s*(K|M|B|)\s*(views|watching)?"
         match (re-find re s)]
     (if match
-      (->
-       match
-       (second)
-       (string/replace "," "")
-       (read-string))
+      (let [num-str (-> (nth match 1) (string/replace "," ""))
+            suffix (nth match 2)
+            number (read-string num-str)]
+        (cond
+          (= suffix "K") (* number 1000)
+          (= suffix "M") (* number 1000000)
+          (= suffix "B") (* number 1000000000)
+          :else number))
       s)))
 
 (defn parse-duration [duration-str]
-  (let [pattern #"(\d+) (hour|day|week|month|year|minute|second)s? ago"
+  (let [pattern #"(Streamed )?(\d+) (hour|day|week|month|year|minute|second)s? ago"
         matches (re-matches pattern duration-str)]
     (when matches
-      (let [value (Integer/parseInt (second matches))
-            unit (nth matches 2)]
+      (let [value (Integer/parseInt (nth matches 2))
+            unit (nth matches 3)]
         {:value value :unit unit}))))
 
 (defn subtract-time [date {:keys [value unit]}]
@@ -103,7 +106,7 @@
 
 (def recommendation-transforms
   {"duration" parse-recommendation-duration
-   "views" parse-recommendation-views
+   "views" parse-views
    "uploaded_date" parse-time-string})
 
 (defn parse-recommendation [rec]
@@ -171,7 +174,7 @@
            "likes" parse-likes
            "recommendations" parse-recommendations
            "time_of_scraping_unix" read-string
-           "views" parse-recommendation-views
+           "views" parse-views
            "thumbnail" #(utils/request (utils/thumbnailurl %1) :bytes)}
    :channel {"videos" list-videos
              "video_count" parse-video-count

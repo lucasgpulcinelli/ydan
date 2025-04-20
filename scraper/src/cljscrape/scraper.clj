@@ -88,7 +88,7 @@
                              (flatten)
                              (distinct)
                              (map make-entry))]
-    (or (empty? failed)
+    (and (empty? successful)
         (do
           (.warn logger "we had {} failures, sleeping for {}s"
                  (count failed) (/ fail-sleep-time 1000))
