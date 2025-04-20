@@ -25,6 +25,9 @@
         (map #(utils/get-match-from %1 v) (kind consts/json-patterns))
         (map json/decode v)
         (reduce merge v)
+        (if (and (= kind :video) (nil? (get v "videoDetails")))
+          (throw (IllegalArgumentException. "video has no details property"))
+          v)
         (utils/rename-props rename-map v)
         (utils/transform-props transform-map v)
         (assoc v "time_of_scraping_unix" (quot (System/currentTimeMillis) 1000))
@@ -89,10 +92,10 @@
                              (distinct)
                              (map make-entry))]
     (and (empty? successful)
-        (do
-          (.warn logger "we had {} failures, sleeping for {}s"
-                 (count failed) (/ fail-sleep-time 1000))
-          (Thread/sleep fail-sleep-time)))
+         (do
+           (.warn logger "we had {} failures, sleeping for {}s"
+                  (count failed) (/ fail-sleep-time 1000))
+           (Thread/sleep fail-sleep-time)))
 
     (if (empty? entries)
       (.warn logger "ended all possible scrapes")
@@ -101,5 +104,5 @@
         (q/put-entries queue recommendations)
         (q/update-entries queue results)
         (recur
-         (if (empty? failed) consts/initial-fail-sleep-time (* fail-sleep-time 2))
+         (if (empty? successful) (* fail-sleep-time 2) consts/initial-fail-sleep-time)
          queue)))))
