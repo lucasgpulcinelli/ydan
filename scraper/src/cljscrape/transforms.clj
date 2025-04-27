@@ -124,14 +124,12 @@
   (filter #(not (nil? (get %1 "id"))) (map parse-recommendation recs)))
 
 (defn get-translated-caption [cap]
-  (if cap
-    (utils/request (str (get cap "url") (if (not= (get cap "language") "en") "&tlang=en" "")) :string)
-    nil))
+  (if cap [(get cap "language") (utils/request (get cap "url") :string)] nil))
 
 (defn choose-caption [caps]
   (->>
    caps
-   (filter #(and (get % "translatable") (get % "name")))
+   (filter #(get % "name"))
    (filter #(.contains (get % "name") "auto-generated"))
    (first)))
 

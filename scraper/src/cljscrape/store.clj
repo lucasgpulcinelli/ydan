@@ -57,11 +57,11 @@
             (save-to-s3
              consts/minio-bucket
              (format "captions/%d/%s.xml" bucket-partition encoded-id)
-             (.getBytes caps "UTF-8")))))
+             (.getBytes (second caps) "UTF-8")))))
 
     (as-> data v
       (dissoc v "thumbnail")
-      (dissoc v "captions")
+      (if (get v caps) (assoc (dissoc v "captions") "caption_language" (first caps)) v)
       (json/encode v)
       (.getBytes v "UTF-8")
       (save-to-s3
