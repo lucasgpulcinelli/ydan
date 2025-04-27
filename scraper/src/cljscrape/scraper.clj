@@ -52,7 +52,7 @@
               "completed")
      :data res}))
 
-(defn cutoff-scrape-filter [entry]
+(defn relevant? [entry]
   (and
    (or
     (nil? (get entry "views"))
@@ -66,21 +66,22 @@
           (DateTimeFormatter/ofPattern "yyyy/MM/dd")))))))
 
 (defn get-recommendations [entry]
-  (let [scrape-result (:data entry)]
-    (concat
-     (map
-      #(get % "channel_id")
-      (filter
-       #(and (not (nil? (get % "channel_id"))) (cutoff-scrape-filter %))
-       (get scrape-result "recommendations")))
-     (map
-      #(get % "id")
-      (filter
-       #(and (not (nil? (get % "id"))) (cutoff-scrape-filter %))
-       (get scrape-result "videos")))
-     (filter
-      #(not (nil? %))
-      (get scrape-result "related_channels")))))
+  (filter
+   #(not (nil? %))
+   (if (= :video (utils/kind (:id entry)))
+     (let [scrape-result (:data entry)
+           important-recommendations (filter
+                                      #(relevant? %)
+                                      (get scrape-result "recommendations"))
+           important-channels (map
+                               #(get % "channel_id")
+                               important-recommendations)]
+       important-channels)
+     (let [scrape-result (:data entry)
+           related-channels (get scrape-result "related_channels")
+           channel-videos (get scrape-result "videos")
+           channel-video-ids (map #(get % "id") channel-videos)]
+       (concat channel-video-ids related-channels)))))
 
 (defn scrape-loop [fail-sleep-time queue]
   (let [[queue entries] (q/get-next-entries queue)
