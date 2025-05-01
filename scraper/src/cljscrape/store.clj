@@ -61,7 +61,7 @@
 
     (as-> data v
       (dissoc v "thumbnail")
-      (if (get v caps) (assoc (dissoc v "captions") "caption_language" (first caps)) v)
+      (if (not (nil? caps)) (assoc (dissoc v "captions") "caption_language" (first caps)) v)
       (json/encode v)
       (.getBytes v "UTF-8")
       (save-to-s3

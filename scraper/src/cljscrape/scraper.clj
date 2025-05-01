@@ -55,7 +55,7 @@
 (defn relevant? [entry]
   (and
    (or
-    (not ( number? (get entry "views")))
+    (not (number? (get entry "views")))
     (<= consts/minimum-views (get entry "views")))
    (or
     (nil? (get entry "uploaded_date"))
