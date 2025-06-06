@@ -10,7 +10,7 @@
    [java.time LocalDateTime]))
 
 (defn parse-upload-date [date-str]
-  (let [re #"(Premiere(d|s)? |Streamed live on )?(.*)"
+  (let [re #"(Premiere(d|s)? |Streamed live on |Started streaming on )?(.*)"
         match (re-find re date-str)
         input-formatter (DateTimeFormatter/ofPattern "MMM d, yyyy")
         output-formatter (DateTimeFormatter/ofPattern "yyyy/MM/dd")]

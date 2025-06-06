@@ -12,11 +12,6 @@ services:
       MINIO_ROOT_PASSWORD: minio-ydan-insecure
     entrypoint: sh
     command: -c "mkdir -p /data/ydan && /usr/bin/minio server /data --console-address ':9001'"
-    deploy:
-      resources:
-        limits:
-          cpus: 2.0
-          memory: 2g
   postgres:
     image: postgres
     restart: always
