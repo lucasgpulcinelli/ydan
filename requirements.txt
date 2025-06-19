@@ -1,0 +1,3 @@
+pyspark
+dbt-core
+dbt-snowflake
