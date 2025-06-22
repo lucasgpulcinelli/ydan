@@ -17,4 +17,9 @@ clean-targets:
 
 models:
   ydan_dbt:
-    +materialized: view
+    silver:
+      +materialized: view
+      +schema: SILVER_LAYER
+    gold:
+      +materialized: view
+      +schema: GOLD_LAYER
