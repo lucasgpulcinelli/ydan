@@ -4,13 +4,14 @@ WITH
 
 CHANNELS AS (
   SELECT *
-  FROM ref('channels')
+  FROM {{ ref('channels') }}
 ),
 
 VIDEO_CHANNELS AS (
   SELECT *
-  FROM ref('video_channels')
+  FROM {{ ref('video_channels') }}
 )
+
 
 SELECT
   VIDEO_CHANNELS.CHANNEL_ID,
