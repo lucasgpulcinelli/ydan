@@ -13,11 +13,12 @@ SELECT
   VIDEO_IS_LIVE_BOOL AS is_live_video,
   VIDEO_VIEWS_NUM AS num_views_video,
   VIDEO_LIKES_NUM AS num_likes_video,
-  VIDEO_DURATION_SECONDS_FLOAT AS duration_seconds_video,
-  VIDEO_DURATION_SECONDS_FLOAT / 60 AS duration_minutes_video,
-  VIDEO_DURATION_SECONDS_FLOAT / 3600 AS duration_hours_video,
+  VIDEO_DURATION_SECONDS_FLOAT AS duration_seconds_total_video,
+  VIDEO_DURATION_SECONDS_FLOAT / 60 AS duration_minutes_total_video,
+  VIDEO_DURATION_SECONDS_FLOAT / 3600 AS duration_hours_total_video,
   MOD(VIDEO_DURATION_SECONDS_FLOAT, 60) AS duration_seconds_component_video,
-  CAST(MOD(VIDEO_DURATION_SECONDS_FLOAT, 3600) / 60 AS NUMBER) AS duration_minutes_component_video,
+  ROUND(MOD(VIDEO_DURATION_SECONDS_FLOAT, 3600) / 60 - 0.5, 0) AS duration_minutes_component_video,
+  ROUND(VIDEO_DURATION_SECONDS_FLOAT / 3600 - 0.5, 0) AS duration_hours_component_video,
   VIDEO_SCRAPE_TIMESTAMP AS time_of_scraping_unix_video
 
 FROM VIDEOS
