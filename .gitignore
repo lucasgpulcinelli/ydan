@@ -16,3 +16,4 @@ pom.xml.asc
 *.class
 .hgignore
 .hg/
+/dbt/profiles.yml
