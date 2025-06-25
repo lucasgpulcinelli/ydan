@@ -1,6 +1,8 @@
 {{ config(materialized='table') }}
 
-WITH VIDEOS AS (
+WITH 
+
+VIDEOS AS (
   SELECT *
   FROM {{ ref('videos') }}
 )

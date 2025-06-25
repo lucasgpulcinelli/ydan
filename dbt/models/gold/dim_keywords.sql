@@ -1,12 +1,14 @@
 {{ config(materialized='table') }}
 
-WITH unique_keywords AS (
+WITH 
+
+unique_keywords AS (
     SELECT DISTINCT KEYWORD_TEXT
-    FROM _SILVER_LAYER.KEYWORDS
-    LIMIT 1000
+    FROM {{ ref('video_keywords') }}
 )
+
 SELECT
-    ROW_NUMBER() OVER(ORDER BY KEYWORD_TEXT) AS id_keyword,
-    KEYWORD_TEXT AS keyword_text
+    ROW_NUMBER() OVER(ORDER BY KEYWORD_TEXT) AS ID_keyword,
+    KEYWORD_TEXT AS text_keyword
 FROM unique_keywords
-ORDER BY keyword_text
+ORDER BY KEYWORD_TEXT
