@@ -1,0 +1,9 @@
+{{ config(materialized='table') }}
+
+
+SELECT 
+    ROW_NUMBER() OVER (ORDER BY WORD) AS "ID",
+    WORD,
+    GRAMMAR_CLASS
+FROM YDAN._SILVER_LAYER.DICTIONARY
+ORDER BY ID
