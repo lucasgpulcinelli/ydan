@@ -1,6 +1,8 @@
 {{ config(materialized='table') }}
 
-WITH DATE_TABLE AS (
+WITH 
+
+DATE_TABLE AS (
   SELECT *
   FROM _SILVER_LAYER.DATE_TABLE
 )

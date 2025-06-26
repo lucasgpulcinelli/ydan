@@ -1,6 +1,8 @@
 {{ config(materialized='table') }}
 
-WITH TIMESTAMP_TABLE AS (
+WITH 
+
+TIMESTAMP_TABLE AS (
   SELECT *
   FROM _SILVER_LAYER.TIMESTAMP
 )
