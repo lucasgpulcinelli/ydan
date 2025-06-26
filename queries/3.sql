@@ -3,8 +3,7 @@
 SELECT
   DIM_DATE.year_component_date,
   DIM_DATE.month_component_date,
-  AVG(FACT_TERM.relevance) AS avg_relevance,
-  STD(FACT_TERM.relevance) AS std_relevance
+  COUNT(FACT_TERM.count) AS count
 
 FROM FACT_TERM
 
@@ -15,7 +14,7 @@ JOIN DIM_DICTIONARY
   ON FACT_TERM.id_dictionary = DIM_DICTIONARY.id_dictionary
 
 WHERE
-  DIM_DICTIONARY.text_dictionary = 'trump'
+  DIM_DICTIONARY.word_dictionary = 'PYTHON'
 
 GROUP BY
   DIM_DATE.year_component_date,
