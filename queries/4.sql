@@ -1,4 +1,4 @@
--- quais são os assuntos de maior interesse para o público do canal X?
+-- quais são os assuntos que tendem a ser recomendados para o público que assiste a vídeos do assunto X?
 -- são usadas as recomendações do youtube para isso
 
 SELECT
