@@ -14,14 +14,14 @@ spark = SparkSession.builder.appName("Ydan data movement").getOrCreate()
 decode_base64_udf = udf(decode_base64, StringType())
 spark.udf.register("decode_base64_udf", decode_base64_udf)
 
-df_channel = spark.read.json("../youtube_data/channel_data/**/*.json")
+df_channel = spark.read.json("s3a://youtube_data/channel_data/**/*.json")
 
-df_videos = spark.read.json("../youtube_data/video_data/**/*.json")
+df_videos = spark.read.json("s3a://youtube_data/video_data/**/*.json")
 
 df_captions = (
     spark.read.format("xml")
     .option("rowTag", "transcript")
-    .load("../youtube_data/captions/**/*.xml")
+    .load("s3a://youtube_data/captions/**/*.xml")
 )
 
 df_channel.createOrReplaceTempView("channel")
